@@ -1,0 +1,69 @@
+cache:
+  ttl: 5m
+  max_size: 1000
+
+circuit_breaker:
+  max_failures: 5
+  reset_timeout: 30s
+
+providers:
+  # Tier 1 — highest quality, rate-limited; token optional for higher quota
+  - name: ipinfo.io
+    base_url: https://ipinfo.io
+    priority: 1
+    token: ""        # set to your ipinfo.io token for higher rate limits
+    enabled: true
+    timeout: 5s
+
+  # Tier 2 — free, no token
+  - name: ip-api.com
+    base_url: http://ip-api.com/json
+    priority: 2
+    enabled: true
+    timeout: 5s
+
+  - name: ipapi.co
+    base_url: https://ipapi.co
+    priority: 2
+    enabled: true
+    timeout: 5s
+
+  # Tier 3 — free or token-required
+  - name: ipgeolocation.io
+    base_url: https://api.ipgeolocation.io/ipgeo
+    priority: 3
+    token: ""        # required; get free key at ipgeolocation.io
+    enabled: true
+    timeout: 5s
+
+  - name: ipwho.is
+    base_url: https://ipwho.is
+    priority: 3
+    enabled: true
+    timeout: 5s
+
+  - name: ipstack.com
+    base_url: http://api.ipstack.com
+    priority: 3
+    token: ""        # required; get free key at ipstack.com
+    enabled: false   # disabled by default until token is set
+    timeout: 5s
+
+  # Tier 4 — IP-only fallback (no geo data)
+  - name: api.ipify.org
+    base_url: https://api.ipify.org
+    priority: 4
+    enabled: true
+    timeout: 3s
+
+  - name: icanhazip.com
+    base_url: https://icanhazip.com
+    priority: 4
+    enabled: true
+    timeout: 3s
+
+  - name: checkip.amazonaws.com
+    base_url: https://checkip.amazonaws.com
+    priority: 4
+    enabled: true
+    timeout: 3s

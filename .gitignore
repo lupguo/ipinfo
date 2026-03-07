@@ -1,0 +1,16 @@
+# Build output
+/ipinfo
+/ipinfo_test_bin
+dist/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Go test cache
+*.test
+*.out

@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and release
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            output: ipinfo-linux-amd64
+          - goos: linux
+            goarch: arm64
+            output: ipinfo-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            output: ipinfo-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output: ipinfo-darwin-arm64
+          - goos: windows
+            goarch: amd64
+            output: ipinfo-windows-amd64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          go build \
+            -ldflags "-X main.version=${{ github.ref_name }}" \
+            -o ${{ matrix.output }} \
+            ./cmd/ipinfo
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.output }}
+          path: ${{ matrix.output }}
+
+  publish:
+    name: Publish release
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Compute SHA256 checksums
+        run: sha256sum ipinfo-* > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ipinfo-*
+            checksums.txt
+          generate_release_notes: true
