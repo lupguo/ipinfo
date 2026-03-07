@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-REPO="lupguo/ip_info"
+REPO="lupguo/ipinfo"
 BINARY="ipinfo"
 
 # ── Detect OS and architecture ────────────────────────────────────────────────

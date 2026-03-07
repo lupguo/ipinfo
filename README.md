@@ -19,7 +19,7 @@
 ### 一键安装（推荐）
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/lupguo/ip_info/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/lupguo/ipinfo/main/install.sh | bash
 ```
 
 自动检测系统和架构，从 GitHub Release 下载二进制并校验 SHA256，同时将示例配置写入 `~/.ipinfo/config.yaml`（已有则不覆盖）。
@@ -27,7 +27,7 @@ curl -fsSL https://raw.githubusercontent.com/lupguo/ip_info/main/install.sh | ba
 ### 从源码编译
 
 ```bash
-git clone https://github.com/lupguo/ip_info.git
+git clone https://github.com/lupguo/ipinfo.git
 cd ip_info
 make build      # 输出 ./ipinfo
 # 或
