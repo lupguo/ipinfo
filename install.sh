@@ -61,7 +61,9 @@ curl -fsSL -o "${TMP_DIR}/checksums.txt" "$CHECKSUM_URL"
 echo "Verifying checksum..."
 cd "$TMP_DIR"
 
-if command -v sha256sum >/dev/null 2>&1; then
+if [ "$OS" = "Darwin" ] && command -v shasum >/dev/null 2>&1; then
+  grep "${ASSET_NAME}" checksums.txt | shasum -a 256 --check --status
+elif command -v sha256sum >/dev/null 2>&1; then
   grep "${ASSET_NAME}" checksums.txt | sha256sum --check --status
 elif command -v shasum >/dev/null 2>&1; then
   grep "${ASSET_NAME}" checksums.txt | shasum -a 256 --check --status
