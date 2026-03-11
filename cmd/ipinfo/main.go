@@ -23,6 +23,7 @@ var version = "dev"
 func main() {
 	var (
 		proxyAddr  string
+		noProxy    bool
 		detail     bool
 		configPath string
 	)
@@ -43,7 +44,7 @@ func main() {
 				return fmt.Errorf("loading config: %w", err)
 			}
 
-			client, err := buildHTTPClient(proxyAddr)
+			client, err := buildHTTPClient(proxyAddr, noProxy)
 			if err != nil {
 				return fmt.Errorf("building HTTP client: %w", err)
 			}
@@ -62,6 +63,8 @@ func main() {
 	}
 
 	root.Flags().StringVarP(&proxyAddr, "proxy", "x", "", "proxy URL (http://... or socks5h://...)")
+	root.Flags().BoolVar(&noProxy, "no-proxy", false, "ignore proxy environment variables (HTTP_PROXY, HTTPS_PROXY, etc.)")
+	root.MarkFlagsMutuallyExclusive("proxy", "no-proxy")
 	root.Flags().BoolVarP(&detail, "detail", "d", false, "show detailed output")
 	root.Flags().StringVarP(&configPath, "config", "c", "", "config file path (default: ~/.ipinfo/config.yaml)")
 
@@ -71,10 +74,15 @@ func main() {
 }
 
 // buildHTTPClient constructs an *http.Client, optionally configured with a proxy.
-func buildHTTPClient(proxyAddr string) (*http.Client, error) {
+// When noProxy is true, environment proxy variables (HTTP_PROXY, HTTPS_PROXY) are ignored.
+func buildHTTPClient(proxyAddr string, noProxy bool) (*http.Client, error) {
 	transport := &http.Transport{}
 
-	if proxyAddr != "" {
+	if noProxy {
+		// A nil Transport.Proxy falls back to http.ProxyFromEnvironment,
+		// so we must set an explicit no-op to truly bypass env proxies.
+		transport.Proxy = func(*http.Request) (*url.URL, error) { return nil, nil }
+	} else if proxyAddr != "" {
 		u, err := url.Parse(proxyAddr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid proxy URL %q: %w", proxyAddr, err)
@@ -108,6 +116,8 @@ func buildHTTPClient(proxyAddr string) (*http.Client, error) {
 			return nil, fmt.Errorf("unsupported proxy scheme: %s", u.Scheme)
 		}
 	}
+	// When neither --proxy nor --no-proxy is set, Transport.Proxy remains nil,
+	// which means http.ProxyFromEnvironment is used (honours env vars).
 
 	return &http.Client{Transport: transport}, nil
 }
