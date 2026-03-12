@@ -33,10 +33,22 @@ ASSET_NAME="${BINARY}-${os}-${arch}"
 
 # ── Fetch latest release tag ──────────────────────────────────────────────────
 echo "Fetching latest release..."
-LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+
+# Method 1: GitHub API (subject to 60 req/hour rate limit for unauthenticated requests)
+LATEST_TAG=$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" 2>/dev/null \
   | grep '"tag_name"' \
   | head -1 \
-  | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+  | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || true)
+
+# Method 2: Fallback — resolve the "latest" redirect URL (not rate-limited)
+if [ -z "$LATEST_TAG" ]; then
+  echo "API rate-limited, trying redirect fallback..."
+  LATEST_TAG=$(curl -fsSIL "https://github.com/${REPO}/releases/latest" 2>/dev/null \
+    | grep -i '^location:' \
+    | tail -1 \
+    | sed 's|.*/tag/\([^ ]*\).*|\1|' \
+    | tr -d '\r' || true)
+fi
 
 if [ -z "$LATEST_TAG" ]; then
   echo "Could not determine latest release tag." >&2
