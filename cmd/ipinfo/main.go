@@ -74,13 +74,19 @@ func main() {
 }
 
 // buildHTTPClient constructs an *http.Client, optionally configured with a proxy.
-// When noProxy is true, environment proxy variables (HTTP_PROXY, HTTPS_PROXY) are ignored.
+//
+// Proxy resolution order:
+//  1. --proxy flag: use the specified proxy URL explicitly.
+//  2. --no-proxy flag: force direct connections, ignoring environment variables.
+//  3. Default (neither flag): honour HTTP_PROXY / HTTPS_PROXY / NO_PROXY env vars.
 func buildHTTPClient(proxyAddr string, noProxy bool) (*http.Client, error) {
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		// By default, honour environment proxy variables (HTTP_PROXY, HTTPS_PROXY, NO_PROXY).
+		Proxy: http.ProxyFromEnvironment,
+	}
 
 	if noProxy {
-		// A nil Transport.Proxy falls back to http.ProxyFromEnvironment,
-		// so we must set an explicit no-op to truly bypass env proxies.
+		// Explicitly disable all proxies, including those from environment variables.
 		transport.Proxy = func(*http.Request) (*url.URL, error) { return nil, nil }
 	} else if proxyAddr != "" {
 		u, err := url.Parse(proxyAddr)
@@ -116,8 +122,6 @@ func buildHTTPClient(proxyAddr string, noProxy bool) (*http.Client, error) {
 			return nil, fmt.Errorf("unsupported proxy scheme: %s", u.Scheme)
 		}
 	}
-	// When neither --proxy nor --no-proxy is set, Transport.Proxy remains nil,
-	// which means http.ProxyFromEnvironment is used (honours env vars).
 
 	return &http.Client{Transport: transport}, nil
 }
