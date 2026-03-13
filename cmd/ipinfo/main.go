@@ -26,6 +26,7 @@ func main() {
 		noProxy    bool
 		detail     bool
 		configPath string
+		ipFlag     string
 	)
 
 	root := &cobra.Command{
@@ -34,8 +35,8 @@ func main() {
 		Version: version,
 		Args:    cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ip := ""
-			if len(args) == 1 {
+			ip := ipFlag
+			if ip == "" && len(args) == 1 {
 				ip = args[0]
 			}
 
@@ -62,6 +63,7 @@ func main() {
 		},
 	}
 
+	root.Flags().StringVarP(&ipFlag, "ip", "i", "", "IP address to query (takes precedence over positional argument)")
 	root.Flags().StringVarP(&proxyAddr, "proxy", "x", "", "proxy URL (http://... or socks5h://...)")
 	root.Flags().BoolVar(&noProxy, "no-proxy", false, "ignore proxy environment variables (HTTP_PROXY, HTTPS_PROXY, etc.)")
 	root.MarkFlagsMutuallyExclusive("proxy", "no-proxy")
