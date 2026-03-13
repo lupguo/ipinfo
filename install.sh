@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — one-click installer for ipinfo
-# Usage: curl -fsSL https://raw.githubusercontent.com/lupguo/ip_info/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/lupguo/ipinfo/main/install.sh | bash
 
 set -euo pipefail
 
